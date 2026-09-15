@@ -1,0 +1,1 @@
+rsync -avhs --partial --progress -e "ssh -p 7743" --include='*/' --include='*.h5' --exclude='*'  labreader@qdev-h101.phas.ubc.ca:/measurement-data/qdev-xld2/Raveel/antidot-0626/ /run/media/raveel/Crucial\ X9/qdg/masters/experiments/antidot-0626/data/
