@@ -3,6 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def h5_to_array(filename, dataset_key):
+    
+    with h5py.File(filename, 'r') as f:
+        data = f[dataset_key][()]
+        x = f['sweepgates_x'][()]
+        y = f['sweepgates_y'][()]
+
+    return data, x, y
+
+
 
 def plot_h5_2d(
     filename,
@@ -18,6 +28,8 @@ def plot_h5_2d(
     grid_x=None,
     grid_y=None,
     yvals= None,
+    scale = None,
+    normx = False,
     
     **imshow_kwargs
 ):
@@ -50,6 +62,9 @@ def plot_h5_2d(
     imshow_kwargs : dict
         Additional keyword arguments passed to `imshow`.
 
+    scale: pick a value to scale the data by
+    normx: normalize the data using the x-axis
+
     Returns
     -------
     im : matplotlib.image.AxesImage
@@ -61,25 +76,31 @@ def plot_h5_2d(
         x = f['sweepgates_x'][()]
         y = f['sweepgates_y'][()]
 
-        xvals = np.linspace(x[0][1], x[0][2], data.shape[1])
+    xvals = np.linspace(x[0][1], x[0][2], data.shape[1])
         
-        if yvals is None:
-            yvals = np.linspace(y[0][1], y[0][2], data.shape[0])
+    if yvals is None:
+        yvals = np.linspace(y[0][1], y[0][2], data.shape[0])
+    
+    if scale is not None:
+        data = data * scale
+    
+    if normx: 
+        data = data / xvals
 
-        # Optional cropping
-        if xlim is not None:
-            x_mask = (xvals >= xlim[0]) & (xvals <= xlim[1])
-            data = data[:, x_mask]
-            xvals = xvals[x_mask]
-        if ylim is not None:
-            y_mask = (yvals >= ylim[0]) & (yvals <= ylim[1])
-            data = data[y_mask, :]
-            yvals = yvals[y_mask]
+    # Optional cropping
+    if xlim is not None:
+        x_mask = (xvals >= xlim[0]) & (xvals <= xlim[1])
+        data = data[:, x_mask]
+        xvals = xvals[x_mask]
+    if ylim is not None:
+        y_mask = (yvals >= ylim[0]) & (yvals <= ylim[1])
+        data = data[y_mask, :]
+        yvals = yvals[y_mask]
 
-        extent = [xvals[0], xvals[-1], yvals[0], yvals[-1]]
+    extent = [xvals[0], xvals[-1], yvals[0], yvals[-1]]
 
-        if gradient_axis is not None:
-            data = np.gradient(data, axis=gradient_axis, edge_order = 2)
+    if gradient_axis is not None:
+        data = np.gradient(data, axis=gradient_axis, edge_order = 2)
 
     if ax is None:
         fig, ax = plt.subplots()
